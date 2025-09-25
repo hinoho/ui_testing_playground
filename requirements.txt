@@ -1,0 +1,5 @@
+pytest~=8.4.0
+playwright~=1.55.0
+allure-pytest
+pytest-playwright
+pillow
