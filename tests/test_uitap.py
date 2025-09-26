@@ -1,3 +1,7 @@
+#запустить 15 раз
+from playwright.sync_api import expect
+
+
 def test_dynamic_id(open_page_fixture):
     page = open_page_fixture('/dynamicid').click('button.btn-primary')
 
@@ -6,6 +10,9 @@ def test_class_attr(open_page_fixture):
 
 def test_hidden_layers(open_page_fixture):
     page = open_page_fixture('/hiddenlayers')
+    page.click('#greenButton')
+    page.click('#blueButton')
+    expect(page.locator('#greenButton')).not_to_be_focused()
 
 def test_load_delay(open_page_fixture):
     page = open_page_fixture('/')
@@ -14,6 +21,9 @@ def test_load_delay(open_page_fixture):
 
 def test_ajax(open_page_fixture):
     page = open_page_fixture('/ajax')
+    page.click('#ajaxButton')
+    page.expect_request_finished(lambda request: request.url == 'http://www.uitestingplayground.com/ajaxdata')
+    assert page.locator('.bg-success').inner_text() == 'Data loaded with AJAX get request.'
 
 def test_client_delay(open_page_fixture):
     page = open_page_fixture('/clientdelay')
@@ -33,21 +43,39 @@ def test_text_input(open_page_fixture):
 
 def test_scrollbars(open_page_fixture):
     page = open_page_fixture('/scrollbars')
+    button = page.locator("#hidingButton")
+    button.scroll_into_view_if_needed()
+    button.click()
 
 def test_dynamic_table(open_page_fixture):
     page = open_page_fixture('/dynamictable')
+    page.locator()
 
 def test_verify_text(open_page_fixture):
     page = open_page_fixture('/verifytext')
+    assert page.locator('//span[normalize-space()="Welcome UserName!"]').is_visible()
 
 def test_progressbar(open_page_fixture):
     page = open_page_fixture('/progressbar')
+    page.click('#startButton')
+    page.wait_for_selector('#progressBar[aria-valuenow="75"]')
+    page.click('#stopButton')
+    assert 'Result: 0' in  page.locator('#result').inner_text()
 
 def test_visibility(open_page_fixture):
     page = open_page_fixture('/visibility')
+    # ???
+    page.click('#hideButton')
+    assert not page.locator('#removedButton').is_visible()
+    assert not page.locator('#zeroWidthButton').is_visible()
+    assert not page.locator('#overlappedButton').is_visible()
 
 def test_sample_app(open_page_fixture):
     page = open_page_fixture('/sampleapp')
+    page.fill('input[name="UserName"]', 'User')
+    page.fill('input[name="Password"]', 'pwd')
+    page.click('button.btn-primary')
+    assert page.locator('#loginstatus').inner_text() == 'Welcome, User!'
 
 def test_mouseover(open_page_fixture):
     page = open_page_fixture('/mouseover')
@@ -57,9 +85,17 @@ def test_non_breaking_space(open_page_fixture):
 
 def test_overlapped(open_page_fixture):
     page = open_page_fixture('/overlapped')
+    page.fill('#name', 'Name')
 
 def test_shadow_dom(open_page_fixture):
+    #???
     page = open_page_fixture('/shadowdom')
+    page.context.grant_permissions(['clipboard-read'])
+    page.click('#buttonGenerate')
+    page.click('#buttonCopy')
+    clipboard_text = page.evaluate("navigator.clipboard.readText()")
+    input_text = page.locator('#editField').inner_text()
+    assert clipboard_text == input_text
 
 def test_alerts(open_page_fixture):
     page = open_page_fixture('/alerts')
@@ -69,6 +105,10 @@ def test_upload(open_page_fixture):
 
 def test_animation(open_page_fixture):
     page = open_page_fixture('/animation')
+    page.click('#animationButton')
+    page.wait_for_selector('#movingTarget.spin', state='hidden')
+    page.click('#movingTarget')
+    assert page.locator('#opstatus').inner_text() == "Moving Target clicked. It's class name is 'btn btn-primary'"
 
 def test_disabled_input(open_page_fixture):
     page = open_page_fixture('/disabledinput')
