@@ -49,7 +49,16 @@ def test_scrollbars(open_page_fixture):
 
 def test_dynamic_table(open_page_fixture):
     page = open_page_fixture('/dynamictable')
-    page.locator()
+    column_id = 0
+    page.screenshot(path='1.png')
+    for column in page.locator('[role="columnheader"]').all():
+        if column.inner_text() == 'CPU':
+            break
+        column_id += 1
+    for row in page.locator('[role="row"]').all():
+        if row.locator(':first-child').inner_text() == 'Chrome':
+            result = row.locator(f':nth-child({column_id+1})').inner_text()
+    assert page.locator('.bg-warning').inner_text() == f'Chrome CPU: {result}'
 
 def test_verify_text(open_page_fixture):
     page = open_page_fixture('/verifytext')
@@ -79,9 +88,14 @@ def test_sample_app(open_page_fixture):
 
 def test_mouseover(open_page_fixture):
     page = open_page_fixture('/mouseover')
+    link_locator = page.get_by_text('Click me')
+    link_locator.click()
+    link_locator.click()
+    assert page.locator('#clickCount').inner_text() == '2'
 
 def test_non_breaking_space(open_page_fixture):
     page = open_page_fixture('/nbsp')
+    page.click("button:text('My\xa0Button')")
 
 def test_overlapped(open_page_fixture):
     page = open_page_fixture('/overlapped')
@@ -99,6 +113,9 @@ def test_shadow_dom(open_page_fixture):
 
 def test_alerts(open_page_fixture):
     page = open_page_fixture('/alerts')
+    page.on("dialog", lambda dialog: dialog.accept())
+    page.click('#alertButton')
+    page.click('#confirmButton')
 
 def test_upload(open_page_fixture):
     page = open_page_fixture('/upload')
