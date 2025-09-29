@@ -113,12 +113,26 @@ def test_shadow_dom(open_page_fixture):
 
 def test_alerts(open_page_fixture):
     page = open_page_fixture('/alerts')
-    page.on("dialog", lambda dialog: dialog.accept())
+    page.once("dialog", alert_dialog)
     page.click('#alertButton')
+
+    page.once("dialog", confirm_dialog)
     page.click('#confirmButton')
 
-def test_upload(open_page_fixture):
-    page = open_page_fixture('/upload')
+    page.once("dialog", prompt_dialog)
+    page.click('#promptButton')
+
+def alert_dialog(dialog):
+    assert dialog.message == 'Today is a working day.\nOr less likely a holiday.'
+    dialog.accept()
+
+def confirm_dialog(dialog):
+    assert dialog.message == 'Today is Friday.\nDo you agree?'
+    dialog.accept()
+
+def prompt_dialog(dialog):
+    assert dialog.message == 'Choose "cats" or \'dogs\'.\nEnter your value:'
+    dialog.accept('dogs')
 
 def test_animation(open_page_fixture):
     page = open_page_fixture('/animation')
